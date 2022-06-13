@@ -179,7 +179,10 @@ class SupervisedTrainer(object):
                 optimizer = Optimizer(optim.Adam(model.parameters()), max_grad_norm=5)
             self.optimizer = optimizer
 
-        self.logger.info("Optimizer: %s, Scheduler: %s" % (self.optimizer.optimizer, self.optimizer.scheduler))
+        self.logger.info(
+            f"Optimizer: {self.optimizer.optimizer}, Scheduler: {self.optimizer.scheduler}"
+        )
+
 
         self._train_epoches(data, model, num_epochs,
                             start_epoch, step, dev_data=dev_data,

@@ -13,10 +13,7 @@ class Predictor(object):
             src_vocab (seq2seq.dataset.vocabulary.Vocabulary): source sequence vocabulary
             tgt_vocab (seq2seq.dataset.vocabulary.Vocabulary): target sequence vocabulary
         """
-        if torch.cuda.is_available():
-            self.model = model.cuda()
-        else:
-            self.model = model.cpu()
+        self.model = model.cuda() if torch.cuda.is_available() else model.cpu()
         self.model.eval()
         self.src_vocab = src_vocab
         self.tgt_vocab = tgt_vocab
@@ -46,8 +43,7 @@ class Predictor(object):
         length = other['length'][0]
 
         tgt_id_seq = [other['sequence'][di][0].data[0] for di in range(length)]
-        tgt_seq = [self.tgt_vocab.itos[tok] for tok in tgt_id_seq]
-        return tgt_seq
+        return [self.tgt_vocab.itos[tok] for tok in tgt_id_seq]
 
     def predict_n(self, src_seq, n=1):
         """ Make 'n' predictions given `src_seq` as input.
@@ -64,7 +60,7 @@ class Predictor(object):
         other = self.get_decoder_features(src_seq)
 
         result = []
-        for x in range(0, int(n)):
+        for x in range(int(n)):
             length = other['topk_length'][0][x]
             tgt_id_seq = [other['topk_sequence'][di][0, x, 0].data[0] for di in range(length)]
             tgt_seq = [self.tgt_vocab.itos[tok] for tok in tgt_id_seq]

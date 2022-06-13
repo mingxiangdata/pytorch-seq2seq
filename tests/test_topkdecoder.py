@@ -9,8 +9,8 @@ from seq2seq.models import DecoderRNN, TopKDecoder
 class TestDecoderRNN(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
-        self.vocab_size = 3
+    def setUpClass(cls):
+        cls.vocab_size = 3
 
     def test_init(self):
         decoder = DecoderRNN(self.vocab_size, 50, 16, 0, 1, input_dropout_p=0)
@@ -92,8 +92,13 @@ class TestDecoderRNN(unittest.TestCase):
                         inputs = torch.autograd.Variable(torch.LongTensor([[inputs]]))
                         decoder_outputs, hidden, _ = decoder.forward_step(inputs, hidden, None, F.log_softmax)
                         topk_score, topk = decoder_outputs[0].data.topk(beam_size)
-                        for score, sym in zip(topk_score.tolist()[0], topk.tolist()[0]):
-                            new_queue.append((t, sym, hidden, score + seq_score, k))
+                        new_queue.extend(
+                            (t, sym, hidden, score + seq_score, k)
+                            for score, sym in zip(
+                                topk_score.tolist()[0], topk.tolist()[0]
+                            )
+                        )
+
                     new_queue = sorted(new_queue, key=lambda x: x[3], reverse=True)[:beam_size]
                     new_batch_queue.append(new_queue)
                 time_batch_queue.append(new_batch_queue)
@@ -118,7 +123,7 @@ class TestDecoderRNN(unittest.TestCase):
                         seq.append(time_batch_queue[prev_t][b][prev_k])
                         prev_k = seq[-1][4]
                         prev_t = seq[-1][0]
-                    batch_topk.append([s for s in reversed(seq)])
+                    batch_topk.append(list(reversed(seq)))
                 topk.append(batch_topk)
 
             for b in range(batch_size):
@@ -128,11 +133,11 @@ class TestDecoderRNN(unittest.TestCase):
             topk_lengths = other_topk['topk_length']
             topk_pred_symbols = other_topk['topk_sequence']
             for b in range(batch_size):
-                precision_error = False
-                for k in range(beam_size - 1):
-                    if np.isclose(topk_scores[b][k], topk_scores[b][k+1]):
-                        precision_error = True
-                        break
+                precision_error = any(
+                    np.isclose(topk_scores[b][k], topk_scores[b][k + 1])
+                    for k in range(beam_size - 1)
+                )
+
                 if precision_error:
                     break
                 for k in range(beam_size):

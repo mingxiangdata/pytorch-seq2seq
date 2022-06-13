@@ -8,8 +8,8 @@ from seq2seq.models import DecoderRNN
 class TestDecoderRNN(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
-        self.vocab_size = 100
+    def setUpClass(cls):
+        cls.vocab_size = 100
 
     def test_input_dropout_WITH_PROB_ZERO(self):
         rnn = DecoderRNN(self.vocab_size, 50, 16, 0, 1, input_dropout_p=0)

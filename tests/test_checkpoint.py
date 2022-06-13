@@ -88,8 +88,7 @@ class TestCheckpoint(unittest.TestCase):
 
     def _get_experiment_dir(self):
         root_dir = os.path.dirname(os.path.realpath(__file__))
-        experiment_dir = os.path.join(root_dir, self.EXP_DIR)
-        return experiment_dir
+        return os.path.join(root_dir, self.EXP_DIR)
 
 
 if __name__ == '__main__':

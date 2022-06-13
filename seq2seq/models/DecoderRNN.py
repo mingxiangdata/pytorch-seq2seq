@@ -168,7 +168,7 @@ class DecoderRNN(BaseRNN):
         if encoder_hidden is None:
             return None
         if isinstance(encoder_hidden, tuple):
-            encoder_hidden = tuple([self._cat_directions(h) for h in encoder_hidden])
+            encoder_hidden = tuple(self._cat_directions(h) for h in encoder_hidden)
         else:
             encoder_hidden = self._cat_directions(encoder_hidden)
         return encoder_hidden
@@ -178,26 +178,24 @@ class DecoderRNN(BaseRNN):
             (#directions * #layers, #batch, hidden_size) -> (#layers, #batch, #directions * hidden_size)
         """
         if self.bidirectional_encoder:
-            h = torch.cat([h[0:h.size(0):2], h[1:h.size(0):2]], 2)
+            h = torch.cat([h[:h.size(0):2], h[1:h.size(0):2]], 2)
         return h
 
     def _validate_args(self, inputs, encoder_hidden, encoder_outputs, function, teacher_forcing_ratio):
-        if self.use_attention:
-            if encoder_outputs is None:
-                raise ValueError("Argument encoder_outputs cannot be None when attention is used.")
+        if self.use_attention and encoder_outputs is None:
+            raise ValueError("Argument encoder_outputs cannot be None when attention is used.")
 
         # inference batch size
         if inputs is None and encoder_hidden is None:
             batch_size = 1
-        else:
-            if inputs is not None:
-                batch_size = inputs.size(0)
-            else:
-                if self.rnn_cell is nn.LSTM:
-                    batch_size = encoder_hidden[0].size(1)
-                elif self.rnn_cell is nn.GRU:
-                    batch_size = encoder_hidden.size(1)
+        elif inputs is None:
+            if self.rnn_cell is nn.LSTM:
+                batch_size = encoder_hidden[0].size(1)
+            elif self.rnn_cell is nn.GRU:
+                batch_size = encoder_hidden.size(1)
 
+        else:
+            batch_size = inputs.size(0)
         # set default input and max decoding length
         if inputs is None:
             if teacher_forcing_ratio > 0:

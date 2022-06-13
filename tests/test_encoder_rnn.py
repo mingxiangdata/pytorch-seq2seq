@@ -8,10 +8,10 @@ from seq2seq.models import EncoderRNN
 class TestEncoderRNN(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
-        self.vocab_size = 100
-        self.input_var = Variable(torch.randperm(self.vocab_size).view(10, 10))
-        self.lengths = [10] * 10
+    def setUpClass(cls):
+        cls.vocab_size = 100
+        cls.input_var = Variable(torch.randperm(cls.vocab_size).view(10, 10))
+        cls.lengths = [10] * 10
 
     def test_input_dropout_WITH_PROB_ZERO(self):
         rnn = EncoderRNN(self.vocab_size, 50, 16, input_dropout_p=0)
